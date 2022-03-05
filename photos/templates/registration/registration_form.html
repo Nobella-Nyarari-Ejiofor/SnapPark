@@ -1,3 +1,4 @@
+{% load bootstrap%}
 {% extends 'registration/base.html' %}
 {% block content %}
 <div class="container">
@@ -21,7 +22,8 @@
                <div class="form-group">
                  <input type="submit" class="btn btn-primary" value ="Sign up">
                </div>
-               
+                 <input type="hidden" name ="next" value ="{{next}}">
+
           </form>
          </div>
        </div>

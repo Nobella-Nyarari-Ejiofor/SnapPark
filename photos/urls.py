@@ -5,7 +5,7 @@ from django.conf import settings
 
 urlpatterns =[
    path('', views.welcome , name ='welcome'),
-   re_path(r'/logout/$', views.logout, name = "logout")
+   re_path(r'logout/$', views.logout, name = "logout")
 ]
 if settings.DEBUG:
     urlpatterns+= static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)

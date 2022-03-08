@@ -1,4 +1,4 @@
-from .models import Profile, Image
+from .models import Comments, Profile, Image
 from django import forms
 
 class ProfileForm(forms.ModelForm):
@@ -11,3 +11,7 @@ class PostForm(forms.ModelForm):
     model = Image
     exclude = ['pub_date', 'profile']
 
+class CommentForm(forms.ModelForm):
+  class Meta:
+    model = Comments
+    exclude = ['image_id']

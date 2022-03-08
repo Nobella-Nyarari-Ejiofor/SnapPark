@@ -19,7 +19,7 @@ class Profile(models.Model):
 
 
 class Image(models.Model):
-  image_url = models.ImageField(upload_to='images')
+  image = models.ImageField(upload_to='images')
   image_name = models.CharField(max_length=30)
   image_caption = models.TextField(max_length = 100)
   pub_date = models.DateTimeField(auto_now_add=True)

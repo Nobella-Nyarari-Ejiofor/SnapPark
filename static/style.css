@@ -82,10 +82,9 @@ body{
 }
 .main{
   width: 100%;
-  padding: 40px 0;
   display: flex;
   justify-content: center;
-  margin-top: 50px;
+  margin-top: 10px;
 }
 
 .wrapper{
@@ -113,6 +112,7 @@ body{
   align-items: center;
   overflow: hidden;
   overflow-x: auto;
+  margin-top: 60px;
 }
 
 .status-wrapper::-webkit-scrollbar{
@@ -161,7 +161,7 @@ body{
   height: auto;
   background: #fff;
   border: 1px solid #dfdfdf;
-  margin-top: 40px;
+  margin-top: 5px;
 }
 
 .info{
@@ -283,4 +283,14 @@ body{
 
 .reaction-wrapper .icon.save{
   margin-left: auto;
+}
+
+.nav-items button {
+  background-color: transparent;
+  border: none;
+ 
+}
+.nav-items button img {
+  height: 30px;
+  margin-bottom: 5px;
 }

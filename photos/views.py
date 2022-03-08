@@ -3,6 +3,12 @@ from django.contrib.auth.decorators import login_required
 from .forms import ProfileForm , PostForm
 from .models import Profile, Image
 from django.contrib.auth.models import User
+from django.contrib.auth.views import LoginView    
+
+
+# creating he login view 
+class AdminLogin(LoginView):
+    template_name = 'registration/login.html'
 
 # Create your views here
 def welcome(request):

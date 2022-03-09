@@ -58,7 +58,7 @@ DATABASES['default'].update(db_from_env)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=Csv())
 
-ALLOWED_HOSTS = []
+
 
 LOGIN_REDIRECT_URL='index' 
 LOGOUT_REDIRECT_URL='login'
@@ -118,14 +118,14 @@ WSGI_APPLICATION = 'park.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'park',
-        'USER': 'moringa',
-        'PASSWORD':'access'
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'park',
+#         'USER': 'moringa',
+#         'PASSWORD':'access'
+#     }
+# }
 
 # Configure Django App for Heroku.
 django_heroku.settings(locals())

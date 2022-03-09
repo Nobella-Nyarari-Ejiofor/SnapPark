@@ -29,7 +29,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODE=config("MODE", default="dev")
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DATABASE_URL ='postgresql+psycopg2://moringa:access@localhost:5432/park'
-DEBUG = os.environ.get('DEBUG', default=False, cast=bool)
+DEBUG = os.environ.get('DEBUG', default=False)
 # development
 if config('MODE')=="dev":
    DATABASES = {

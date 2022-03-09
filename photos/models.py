@@ -20,10 +20,10 @@ class Profile(models.Model):
 
 class Image(models.Model):
   image = models.ImageField(upload_to='images')
-  image_name = models.CharField(max_length=30)
-  image_caption = models.TextField(max_length = 100)
+  title = models.CharField(max_length=30)
+  caption = models.TextField(max_length = 100)
   pub_date = models.DateTimeField(auto_now_add=True)
-  profile = models.ForeignKey(Profile , on_delete=models.CASCADE)
+  user = models.ForeignKey(Profile , on_delete=models.CASCADE)
   
 
   def __str__(self):
@@ -46,6 +46,8 @@ class Image(models.Model):
 class Comments(models.Model):
   comment = models.TextField()
   image = models.ForeignKey(Image , on_delete=models.CASCADE)
+  user = models.ForeignKey(Profile,on_delete=models.CASCADE , null=False)
+  created_at = models.DateTimeField(auto_now_add=True , null=True)
 
   def __str__(self):
     return self.comment
@@ -64,14 +66,16 @@ class Comments(models.Model):
     comments_found = cls.objects.filter(image = Image.objects.filter(id = image).first()).all()
     return comments_found
 
+class Follow(models.Model):
+    follower=models.ForeignKey(User,related_name='followers',on_delete=models.CASCADE)
+    followed=models.ForeignKey(User,related_name='followed',on_delete=models.CASCADE)
 
-class Rate(models.Model):
-  rate = models.CharField(max_length = 4)
-  image= models.ForeignKey(Image , on_delete= models.CASCADE)
+    def __str__(self):
+        return self.follower
 
-  def __str__(self):
-    self.rate
-
+class Like(models.Model):
+	user = models.ForeignKey(User, related_name='likes', on_delete=models.CASCADE)
+	post = models.ForeignKey(Image, related_name='likes', on_delete=models.CASCADE)
 
 
 

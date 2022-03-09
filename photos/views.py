@@ -1,7 +1,7 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from .forms import ProfileForm , PostForm , CommentForm
-from .models import Comments, Profile, Image, Rate
+from .models import Comments, Profile, Image, Like , Follow
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView    
 
@@ -19,7 +19,7 @@ from django.contrib.auth.views import LoginView
 @login_required(login_url='/accounts/login/')
 def home(request):
   current_user = request.user
-  timeline_items = Image.objects.all()
+  timeline_items = Image.objects.all().order_by('pub_date').reverse()
   all_users = User.objects.exclude(id= request.user.id)
   # liked_posts = [i for i in Image.objects.all() if Rate.objects.filter(user = request.user, post=1)]
   # followed = [i for i in User.objects.all() if Follow.objects.filter(follower = request.user, followed=i)]

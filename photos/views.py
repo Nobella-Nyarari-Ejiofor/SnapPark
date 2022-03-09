@@ -1,100 +1,120 @@
+from django.http.response import Http404
+from photos.models import Post, Comment, Profile, Like, Follow
 from django.shortcuts import redirect, render
+from .forms import CreateUserForm, UploadImageForm, CommentForm
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from .forms import ProfileForm , PostForm , CommentForm
-from .models import Comments, Profile, Image, Like , Follow
+from django.http import HttpResponseRedirect, HttpResponse
+from django.shortcuts import get_object_or_404
+import json
 from django.contrib.auth.models import User
-from django.contrib.auth.views import LoginView    
+
+from django.contrib import messages
+
+@login_required(login_url='login')
+def index(request):
+
+    posts = Post.objects.all()
+    all_users = User.objects.exclude(id=request.user.id)
+    liked_posts = [i for i in Post.objects.all() if Like.objects.filter(user = request.user, post=i)]
+    followed = [i for i in User.objects.all() if Follow.objects.filter(follower = request.user, followed=i)]
+
+    if request.method == 'POST':
+        upload_form = UploadImageForm(request.POST, request.FILES)
+        
+        if upload_form.is_valid():
+            upload_form.instance.user = request.user.profile
+            upload_form.save()
+
+            return redirect('index')
+
+    else:
+        upload_form = UploadImageForm()
+
+    context = {'upload_form': upload_form, 'posts':posts, 'liked_posts': liked_posts, 'all_users':all_users, 'followed': followed}
+
+    return render(request, 'photos/index.html',context)
 
 
-# # # creating he login view 
-# # class AdminLogin(LoginView):
-# #     template_name = 'registration/login.html'
+def register_user(request):
+    if request.user.is_authenticated:
+        return redirect('/')
 
-# from registration.backends.simple.views import RegistrationView
+    else:
+        form = CreateUserForm
+        title = 'New Account'
 
-# class MyRegistrationView(RegistrationView):
-#     template_name = 'registration/registration_form.html'
+        if request.method == 'POST':
+            form = CreateUserForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('login')
 
-# Create your views here
-@login_required(login_url='/accounts/login/')
-def home(request):
-  current_user = request.user
-  timeline_items = Image.objects.all().order_by('pub_date').reverse()
-  all_users = User.objects.exclude(id= request.user.id)
-  # liked_posts = [i for i in Image.objects.all() if Rate.objects.filter(user = request.user, post=1)]
-  # followed = [i for i in User.objects.all() if Follow.objects.filter(follower = request.user, followed=i)]
-  if request.method == 'POST':
-    form = PostForm(request.POST , request.FILES)
-  
-    if form.is_valid():
-    
-      poster = form.save(commit = False)
-      poster.profile =  Profile.objects.get( profile_user_id = current_user.id)
-      poster.save()
-    return redirect('home')
-
-  else:
-    form = PostForm()
-
-  
-  context = {'post_form': form, 'images':timeline_items,  'all_users':all_users}
-
-  return render (request, 'photos/home.html',context)
-
-def logout(request):
-  return render (request , 'registration/logout.html')
-
-@login_required(login_url='/accounts/login/')
-def profile(request):
-
-  current_user = request.user
-
-  
-  if request.method == 'POST':
-    form = ProfileForm(request.POST , request.FILES)
-
-  
-    if form.is_valid():
-    
-      profile = form.save(commit = False)
-      profile.profile_user = current_user
-      profile.save()
-    return redirect('profile')
-
-  else:
-    form = ProfileForm()
-    return render (request ,'photos/profile.html',{"form":form})
+    context = {'form': form, 'title': title}
+    return render(request, 'accounts/registration.html', context)
 
 
-def comments(request):
-  current_user = request.user
+def login_user(request):
+    if request.user.is_authenticated:
+        return redirect('/')
 
-  
-  if request.method == 'POST':
-    form = CommentForm(request.POST , request.FILES)
+    else:
 
-  
-    if form.is_valid():
-    
-      comments = form.save(commit = False)
-      comments = Comments.objects.get(image_id = current_user.id)
-      comments.save()
-    return redirect('comments')
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            password = request.POST.get('password')
 
-  else:
-    form = ProfileForm()
-    return render (request ,'photos/home.html',{"form":form})
+            user = authenticate(request, username=username, password=password)
 
+            if user is not None:
+                login(request, user)
+                return redirect('/')
+            else:
+                messages.info(request, 'Username or password is incorrect.')
 
-
-# def profile_images(request,id):
-#   images = Image.objects.filter(profile_id = id).all()
-#   return render(request , 'photos/profile-images.html',{"images":images})
+    context = {}
+    return render(request, 'accounts/login.html', context)
 
 
-# @login_required(login_url ='/accounts/login/')
-# def poster(request):
-#   current_user = request.user
-  
-#   return render (request ,'photos/post.html',{"form":form})
+def logout_user(request):
+    logout(request)
+    return redirect('login')
 
+def comment(request, post_id):
+    post = Post.objects.get(id=post_id)
+
+    if request.method == 'POST':
+        comment_form = CommentForm(request.POST, request.FILES)
+        if comment_form.is_valid():
+            comment_form.instance.user = request.user.profile
+            comment_form.instance.post = post
+
+            comment_form.save()
+
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+@login_required(login_url='login')
+def like(request, post_id):
+    user = request.user
+    post = Post.objects.get(pk=post_id)
+    like = Like.objects.filter(user=user, post=post)
+    if like:
+        like.delete()
+    else:
+        new_like = Like(user=user, post=post)
+        new_like.save()
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required(login_url='login')
+def follow(request, user_id):
+    user = request.user
+    other_user = User.objects.get(pk=user_id)
+    follow = Follow.objects.filter(follower=user, followed=other_user)
+    if follow:
+        follow.delete()
+    else:
+        new_follow = Follow(follower=user, followed=other_user)
+        new_follow.save()
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))

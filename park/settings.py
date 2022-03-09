@@ -28,6 +28,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+LOGIN_REDIRECT_URL='index' 
+LOGOUT_REDIRECT_URL='login'
+
 
 # Application definition
 
@@ -40,8 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bootstrap4',
-    'photos',
-    'accounts',
+    # registering templates
+    'photos.apps.PhotosConfig', 
     'tinymce',
 ]
 # # registeringthe custom user model

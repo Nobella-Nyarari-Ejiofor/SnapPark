@@ -1,70 +1,91 @@
-from distutils.command.upload import upload
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.deletion import CASCADE
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
-
+# Create your models here.
 class Profile(models.Model):
-  profile_photo = models.ImageField(upload_to="profile")
-  profile_bio = models.TextField(max_length= 50)
-  profile_user = models.OneToOneField(User, on_delete=models.CASCADE , primary_key= True , null= False)
-  
-  def __str__(self):
-    return self.profile_bio
- 
-  @classmethod
-  def search_profile_by_username(cls,usersname):
-    user_found = cls.objects.filter(usersname = User.objects.filter(username__contains = usersname).first()).all()
-    return user_found
+    user=models.OneToOneField(User, on_delete=models.CASCADE,related_name='profile', null=True)
+    name=models.CharField(max_length=50)
+    bio=models.TextField(max_length=500,blank=True)
+    # profile_pic=models.ImageField(upload_to='images/')
+    def __str__(self):
+        return f'{self.user.username} Profile'
+
+    @receiver(post_save, sender=User)
+    def create_user_profile(sender, instance, created, **kwargs):
+        if created:
+            Profile.objects.create(user=instance)
+
+    @receiver(post_save, sender=User)
+    def save_user_profile(sender, instance, **kwargs):
+        instance.profile.save()
+
+    def save_profile(self):
+        self.user
+
+    def delete_profile(self):
+        self.delete()
+
+    @classmethod
+    def search_profile(cls, search_term):
+        return cls.objects.filter(user__username__icontains=search_term).all()
+    def __str__(self):
+        return f"{self.user.first_name}'s Profile"
 
 
+class Post(models.Model):
+    image = models.ImageField(upload_to='images/')
+    title = models.CharField(max_length=50)
+    description = models.CharField(max_length=250, blank=True)
+    user = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='posts', null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
-class Image(models.Model):
-  image = models.ImageField(upload_to='images')
-  title = models.CharField(max_length=30)
-  caption = models.TextField(max_length = 100)
-  pub_date = models.DateTimeField(auto_now_add=True)
-  user = models.ForeignKey(Profile , on_delete=models.CASCADE)
-  
+    class Meta:
+        '''
+        Class method to display images by date published
+        '''
+        ordering = ["-pk"]
 
-  def __str__(self):
-    return self.image_name
+    def save_post(self):
+        '''
+        Method to save our images
+        '''
+        self.save()
 
-# saving image
-  def save_image(self):
-    self.save()
+    def delete_post(self):
+        '''
+        Method to delete our images
+        '''
+        self.delete()
 
-#delete image
-  def delete_image(self):
-    Image.objects.filter(id = self.id).delete()
- 
-#filter images by user
-  @classmethod
-  def filter_by_user(cls,user):
-   images_found = cls.objects.filter(user = User.objects.filter(username_contains = user).first()).all()
-   return images_found
-  
-class Comments(models.Model):
-  comment = models.TextField()
-  image = models.ForeignKey(Image , on_delete=models.CASCADE)
-  user = models.ForeignKey(Profile,on_delete=models.CASCADE , null=False)
-  created_at = models.DateTimeField(auto_now_add=True , null=True)
 
-  def __str__(self):
-    return self.comment
+    def __str__(self):
+        return self.title
 
-  # saving a comment
-  def save_comment(self):
-    return self.save()
 
-  #delete a comment 
-  def delete_comment(self):
-    Comments.objects.filter(id = self.id).delete()
+class Comment(models.Model):
+    comment = models.TextField()
+    post=models.ForeignKey(Post,related_name='comments',on_delete=models.CASCADE)
+    user=models.ForeignKey(Profile,related_name='comments',on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
 
-  #getting comments from one image 
-  @classmethod
-  def filter_by_image(cls,image):
-    comments_found = cls.objects.filter(image = Image.objects.filter(id = image).first()).all()
-    return comments_found
+    def save_comment(self):
+        self.save()
+
+    def delete_comment(self):
+        self.delete()
+
+    @classmethod
+    def get_comments(cls,id):
+        comments = cls.objects.filter(post__id=id)
+        return comments
+
+    def __str__(self):
+        return self.comment
+    class Meta:
+        ordering=["-pk"]
 
 class Follow(models.Model):
     follower=models.ForeignKey(User,related_name='followers',on_delete=models.CASCADE)
@@ -75,7 +96,4 @@ class Follow(models.Model):
 
 class Like(models.Model):
 	user = models.ForeignKey(User, related_name='likes', on_delete=models.CASCADE)
-	post = models.ForeignKey(Image, related_name='likes', on_delete=models.CASCADE)
-
-
-
+	post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)

@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-93p&yr=yero25+)14%a&li)_otb!oqt-^3a2ljm=%0ettnlgc4
 # SECURITY WARNING: don't run with debug turned on in production!
 
 MODE=config("MODE", default="dev")
-SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = 'oktooyoo'
 DEBUG = config('DEBUG', default=False, cast=bool)
 # development
 if config('MODE')=="dev":
